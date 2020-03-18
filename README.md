@@ -1,4 +1,4 @@
-This repository condorcet provides Golang implementations of the Condorcet voting system and some variants.
+This repository provides Golang implementations of the Condorcet voting system and some variants.
 
 See
 - https://en.wikipedia.org/wiki/Condorcet_method
