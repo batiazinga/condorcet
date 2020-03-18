@@ -7,6 +7,59 @@ import (
 	"github.com/batiazinga/condorcet"
 )
 
+// TestElection_Vote_invalid sends invalid ballots to an election and makes sure it fails.
+func TestElection_Vote_invalid(t *testing.T) {
+	testcases := []struct {
+		label  string
+		num    int // number of candidates
+		ballot []int
+	}{
+		{
+			label:  "partial_preference",
+			num:    4,
+			ballot: []int{0, 3, 2}, // 1 is not ranked
+		},
+		{
+			label:  "too_many_candidates",
+			num:    3,
+			ballot: []int{2, 3, 0, 1},
+		},
+		{
+			label:  "negative_number",
+			num:    3,
+			ballot: []int{0, -1, 2},
+		},
+		{
+			label:  "to_large_number",
+			num:    5,
+			ballot: []int{0, 5, 3, 2, 1},
+		},
+		{
+			label:  "duplicate_candidate",
+			num:    4,
+			ballot: []int{3, 3, 1, 2},
+		},
+	}
+
+	for i, tc := range testcases {
+		t.Run(
+			strconv.Itoa(i),
+			func(t *testing.T) {
+				e, err := condorcet.New(tc.num)
+				if err != nil {
+					t.Errorf("testcase %d is invalid: %v", i, err)
+					return
+				}
+
+				if e.Vote(tc.ballot...) {
+					t.Errorf("testcase %d did not fail", i)
+					return
+				}
+			},
+		)
+	}
+}
+
 func TestElection_Winner(t *testing.T) {
 	testcases := []struct {
 		label      string
@@ -104,15 +157,15 @@ func TestElection_Winner(t *testing.T) {
 			func(t *testing.T) {
 				e, err := condorcet.New(tc.num)
 				if err != nil {
-					t.Errorf("invalid testcase: %v", err)
+					t.Errorf("testcase %q is invalid: %v", tc.label, err)
 					return
 				}
 
-				for _, ballot := range tc.ballots {
-					for i := 0; i < ballot[0]; i++ {
+				for j, ballot := range tc.ballots {
+					for k := 0; k < ballot[0]; k++ {
 						valid := e.Vote(ballot[1:]...)
 						if !valid {
-							t.Errorf("invalid testcase: invalid ballot %v", ballot[1:])
+							t.Errorf("%d-th ballot of testcase %q is invalid: %v", j, tc.label, ballot[1:])
 							return
 						}
 					}
