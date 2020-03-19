@@ -80,34 +80,19 @@ func (e *Election) Vote(ballot ...int) bool {
 	return true
 }
 
-// Winner returns the winner of the election if any.
-// If there is no winner it returns false.
-//
-// An election with no vote has no winner.
-func (e *Election) Winner() (w int, exist bool) {
+// Result returns the a snapshot of the election.
+// The election can continue receiving votes without
+// impacting previously created results.
+func (e *Election) Result() Result {
 	if !e.initialized() {
 		e.init()
 	}
 
-	// find the winner
-	for i := 1; i < e.num(); i++ {
-		// i is the challenger of w
-		if e.m[e.index(w, i)] < e.m[e.index(i, w)] {
-			w = i // i beats w
-		}
-	}
+	// copy the content of the election into the result
+	cp := &Election{}
+	cp.n = e.n
+	cp.m = make([]uint, len(e.m))
+	copy(cp.m, e.m)
 
-	// is w really a winner?
-	for i := 0; i < e.num(); i++ {
-		if w == i {
-			continue
-		}
-
-		// i is the challenger of w
-		if e.m[e.index(w, i)] <= e.m[e.index(i, w)] {
-			return // w fails to beat i: not a winner finally
-		}
-	}
-
-	return w, true
+	return Result{cp}
 }

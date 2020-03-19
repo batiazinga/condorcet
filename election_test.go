@@ -193,7 +193,7 @@ func TestElection_Winner(t *testing.T) {
 					}
 				}
 
-				w, exist := e.Winner()
+				w, exist := e.Result().Winner()
 				if exist && !tc.hasWinner {
 					t.Error("no winner expected")
 					return
