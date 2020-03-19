@@ -7,6 +7,22 @@ import (
 	"github.com/batiazinga/condorcet"
 )
 
+// TestElection_default asserts that the default zero value of Election
+// is an election with two candidates.
+func TestElection_default(t *testing.T) {
+	e := &condorcet.Election{}
+	if !e.Vote(1, 0) {
+		t.Fatalf("default zero value of Election is not a 2-candidate election")
+	}
+}
+
+// TestElection_invalid asserts that New fails if there are not at least 2 candidates.
+func TestElection_invalid(t *testing.T) {
+	if _, err := condorcet.New(1); err == nil {
+		t.Fatalf("creating an election with less than 2 candidates did not fail")
+	}
+}
+
 // TestElection_Vote_invalid sends invalid ballots to an election and makes sure it fails.
 func TestElection_Vote_invalid(t *testing.T) {
 	testcases := []struct {
