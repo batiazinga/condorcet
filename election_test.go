@@ -78,12 +78,18 @@ func TestElection_Vote_invalid(t *testing.T) {
 
 func TestElection_Winner(t *testing.T) {
 	testcases := []struct {
-		label      string
-		num        int     // number of candidates
-		ballots    [][]int // ballots prefixed by the number of times this ballot appears
-		hasWinnter bool
-		winner     int
+		label     string
+		num       int     // number of candidates
+		ballots   [][]int // ballots prefixed by the number of times this ballot appears
+		hasWinner bool
+		winner    int
 	}{
+		{
+			// no vote, no winner
+			label:     "no vote",
+			num:       6,
+			hasWinner: false,
+		},
 		{
 			// example from Condorcet described here
 			// https://fr.wikipedia.org/wiki/M%C3%A9thode_de_Condorcet
@@ -107,8 +113,8 @@ func TestElection_Winner(t *testing.T) {
 					2, 0, 1,
 				},
 			},
-			hasWinnter: true,
-			winner:     2,
+			hasWinner: true,
+			winner:    2,
 		},
 		{
 			// example from
@@ -133,8 +139,8 @@ func TestElection_Winner(t *testing.T) {
 					1, 0, 3, 2,
 				},
 			},
-			hasWinnter: true,
-			winner:     3,
+			hasWinner: true,
+			winner:    3,
 		},
 		{
 			// example from
@@ -163,7 +169,7 @@ func TestElection_Winner(t *testing.T) {
 					2, 1, 0,
 				},
 			},
-			hasWinnter: false,
+			hasWinner: false,
 		},
 	}
 
@@ -188,11 +194,11 @@ func TestElection_Winner(t *testing.T) {
 				}
 
 				w, exist := e.Winner()
-				if exist && !tc.hasWinnter {
+				if exist && !tc.hasWinner {
 					t.Error("no winner expected")
 					return
 				}
-				if !exist && tc.hasWinnter {
+				if !exist && tc.hasWinner {
 					t.Error("a winner was expected")
 					return
 				}

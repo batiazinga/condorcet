@@ -82,7 +82,13 @@ func (e *Election) Vote(ballot ...int) bool {
 
 // Winner returns the winner of the election if any.
 // If there is no winner it returns false.
+//
+// An election with no vote has no winner.
 func (e *Election) Winner() (w int, exist bool) {
+	if !e.initialized() {
+		e.init()
+	}
+
 	// find the winner
 	for i := 1; i < e.num(); i++ {
 		// i is the challenger of w
