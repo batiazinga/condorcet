@@ -34,3 +34,6 @@ func (r Result) Winner() (w int, exist bool) {
 
 	return w, true
 }
+
+// NumVoters returns the number of voters.
+func (r Result) NumVoters() uint { return r.e.NumVoters() }

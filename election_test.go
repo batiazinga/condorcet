@@ -76,103 +76,103 @@ func TestElection_Vote_invalid(t *testing.T) {
 	}
 }
 
-func TestElection_Winner(t *testing.T) {
-	testcases := []struct {
-		label     string
-		num       int     // number of candidates
-		ballots   [][]int // ballots prefixed by the number of times this ballot appears
-		hasWinner bool
-		winner    int
-	}{
-		{
-			// no vote, no winner
-			label:     "no vote",
-			num:       6,
-			hasWinner: false,
-		},
-		{
-			// example from Condorcet described here
-			// https://fr.wikipedia.org/wiki/M%C3%A9thode_de_Condorcet
-			label: "Condorcet's example",
-			num:   3,
-			ballots: [][]int{
-				[]int{
-					23,
-					0, 2, 1,
-				},
-				[]int{
-					19,
-					1, 2, 0,
-				},
-				[]int{
-					16,
-					2, 1, 0,
-				},
-				[]int{
-					2,
-					2, 0, 1,
-				},
+var testcases = []struct {
+	label     string
+	num       int     // number of candidates
+	ballots   [][]int // ballots prefixed by the number of times this ballot appears
+	hasWinner bool
+	winner    int
+}{
+	{
+		// no vote, no winner
+		label:     "no vote",
+		num:       6,
+		hasWinner: false,
+	},
+	{
+		// example from Condorcet described here
+		// https://fr.wikipedia.org/wiki/M%C3%A9thode_de_Condorcet
+		label: "Condorcet's example",
+		num:   3,
+		ballots: [][]int{
+			[]int{
+				23,
+				0, 2, 1,
 			},
-			hasWinner: true,
-			winner:    2,
-		},
-		{
-			// example from
-			// https://en.wikipedia.org/wiki/Condorcet_method
-			label: "4 candidates",
-			num:   4,
-			ballots: [][]int{
-				[]int{
-					42,
-					2, 3, 0, 1,
-				},
-				[]int{
-					26,
-					3, 0, 1, 2,
-				},
-				[]int{
-					15,
-					0, 1, 3, 2,
-				},
-				[]int{
-					17,
-					1, 0, 3, 2,
-				},
+			[]int{
+				19,
+				1, 2, 0,
 			},
-			hasWinner: true,
-			winner:    3,
-		},
-		{
-			// example from
-			// https://fr.wikipedia.org/wiki/Paradoxe_de_Condorcet
-			label: "paradoxe",
-			num:   3,
-			ballots: [][]int{
-				[]int{
-					23,
-					0, 1, 2,
-				},
-				[]int{
-					17,
-					1, 2, 0,
-				},
-				[]int{
-					2,
-					1, 0, 2,
-				},
-				[]int{
-					10,
-					2, 0, 1,
-				},
-				[]int{
-					8,
-					2, 1, 0,
-				},
+			[]int{
+				16,
+				2, 1, 0,
 			},
-			hasWinner: false,
+			[]int{
+				2,
+				2, 0, 1,
+			},
 		},
-	}
+		hasWinner: true,
+		winner:    2,
+	},
+	{
+		// example from
+		// https://en.wikipedia.org/wiki/Condorcet_method
+		label: "4 candidates",
+		num:   4,
+		ballots: [][]int{
+			[]int{
+				42,
+				2, 3, 0, 1,
+			},
+			[]int{
+				26,
+				3, 0, 1, 2,
+			},
+			[]int{
+				15,
+				0, 1, 3, 2,
+			},
+			[]int{
+				17,
+				1, 0, 3, 2,
+			},
+		},
+		hasWinner: true,
+		winner:    3,
+	},
+	{
+		// example from
+		// https://fr.wikipedia.org/wiki/Paradoxe_de_Condorcet
+		label: "paradoxe",
+		num:   3,
+		ballots: [][]int{
+			[]int{
+				23,
+				0, 1, 2,
+			},
+			[]int{
+				17,
+				1, 2, 0,
+			},
+			[]int{
+				2,
+				1, 0, 2,
+			},
+			[]int{
+				10,
+				2, 0, 1,
+			},
+			[]int{
+				8,
+				2, 1, 0,
+			},
+		},
+		hasWinner: false,
+	},
+}
 
+func TestElection_Winner(t *testing.T) {
 	for i, tc := range testcases {
 		t.Run(
 			strconv.Itoa(i),
@@ -204,6 +204,50 @@ func TestElection_Winner(t *testing.T) {
 				}
 				if exist && w != tc.winner {
 					t.Errorf("wrong winner: %d instead of %d", w, tc.winner)
+				}
+			},
+		)
+	}
+}
+
+func TestElection_NumVoters(t *testing.T) {
+	for i, tc := range testcases {
+		t.Run(
+			strconv.Itoa(i),
+			func(t *testing.T) {
+				e, err := condorcet.New(tc.num)
+				if err != nil {
+					t.Errorf("testcase %q is invalid: %v", tc.label, err)
+					return
+				}
+
+				// vote and count voters
+				var numVoters uint
+				for j, ballot := range tc.ballots {
+					numVoters += uint(ballot[0])
+
+					for k := 0; k < ballot[0]; k++ {
+						valid := e.Vote(ballot[1:]...)
+						if !valid {
+							t.Errorf("%d-th ballot of testcase %q is invalid: %v", j, tc.label, ballot[1:])
+							return
+						}
+					}
+				}
+
+				// compare to number of voters according to election
+				if numVoters != e.NumVoters() {
+					t.Errorf("wrong number of voters: %d instead of %d", e.NumVoters(), numVoters)
+					return
+				}
+
+				// make sure number of voters is the same for the election and the result
+				r := e.Result()
+				if e.NumVoters() != r.NumVoters() {
+					t.Errorf(
+						"Number of voters in election and results are different: %d in election while %d in result",
+						e.NumVoters(), r.NumVoters(),
+					)
 				}
 			},
 		)

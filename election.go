@@ -80,6 +80,16 @@ func (e *Election) Vote(ballot ...int) bool {
 	return true
 }
 
+// NumVoters returns the number of voters so far.
+func (e *Election) NumVoters() uint {
+	if !e.initialized() {
+		return 0
+	}
+
+	// the election has at least candidates 0 and 1
+	return e.m[e.index(0, 1)] + e.m[e.index(1, 0)]
+}
+
 // Result returns the a snapshot of the election.
 // The election can continue receiving votes without
 // impacting previously created results.
