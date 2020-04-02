@@ -6,8 +6,8 @@ import "errors"
 //
 // The (pointer to) default zero value is an election with 2 candidates.
 type Election struct {
-	n int    // number of candidates - 2
-	m []uint // sum matrix (row major order)
+	n int   // number of candidates - 2
+	m []int // sum matrix (row major order)
 }
 
 // New returns an election with n candidates.
@@ -32,7 +32,7 @@ func (e *Election) initialized() bool { return e.m != nil }
 // it is an n*n matrix with no value on the diagonal
 func (e *Election) init() {
 	n := e.num()
-	e.m = make([]uint, n*n)
+	e.m = make([]int, n*n)
 }
 
 // index of the (i,j) pair in the sum matrix
@@ -81,7 +81,7 @@ func (e *Election) Vote(ballot ...int) bool {
 }
 
 // NumVoters returns the number of voters so far.
-func (e *Election) NumVoters() uint {
+func (e *Election) NumVoters() int {
 	if !e.initialized() {
 		return 0
 	}
@@ -101,7 +101,7 @@ func (e *Election) Result() Result {
 	// copy the content of the election into the result
 	cp := &Election{}
 	cp.n = e.n
-	cp.m = make([]uint, len(e.m))
+	cp.m = make([]int, len(e.m))
 	copy(cp.m, e.m)
 
 	return Result{cp}

@@ -222,9 +222,9 @@ func TestElection_NumVoters(t *testing.T) {
 				}
 
 				// vote and count voters
-				var numVoters uint
+				var numVoters int
 				for j, ballot := range tc.ballots {
-					numVoters += uint(ballot[0])
+					numVoters += ballot[0]
 
 					for k := 0; k < ballot[0]; k++ {
 						valid := e.Vote(ballot[1:]...)
